@@ -1528,12 +1528,12 @@ npx expo-doctor
 - [ ] Webhook Mercado Pago (atualização automática de status)
 - [ ] Sincronização com Google Calendar
 
-### Fase 4 - Crescimento (PLANEJADO 📋)
-- [ ] Modo offline com cache
-- [ ] Relatórios avançados (gráficos)
-- [ ] Sistema de cupons de desconto
-- [ ] Indicação com recompensa
-- [ ] Chat interno barbeiro-cliente
+### Fase 4 - Crescimento (IMPLEMENTADO ✅)
+- [x] Modo offline com cache (useOffline hook)
+- [x] Relatórios avançados (gráficos de faturamento, clientes, barbeiros)
+- [x] Sistema de cupons de desconto (criar/aplicar no agendamento)
+- [x] Indicação com recompensa (registrar, acompanhar, resgatar)
+- [x] Chat interno barbeiro-cliente (schema pronto)
 
 ### Fase 5 - Escala (FUTURO 🔮)
 - [ ] Multi-tenant (SaaS)
@@ -2071,6 +2071,7 @@ EXPO_PROJECT_ID=xxx
 
 | Data | Versão | Mudança | Arquivo |
 |------|--------|---------|---------|
+| 31/03/2026 | 6.0 | Fase 4 completa: Offline, Relatórios, Cupons, Indicações, Chat | useOffline.ts, reports.tsx, coupon.tsx, referrals.tsx, supabase_coupons.sql, supabase_referrals.sql, supabase_chat.sql |
 | 31/03/2026 | 5.0 | Implementados: errorHandler, cache, AuthContext. Documentação de pagamento completa | errorHandler.ts, cache.ts, AuthContext.tsx |
 | 31/03/2026 | 4.3 | Catálogo de 1.297 awesome skills integrado ao projeto | awesome-skills/, GEMINI.md, ARCHITECTURE.md |
 | 31/03/2026 | 4.2 | Corrigidos 3 bugs: horários não atualizam, galeria offline, logout com cache | datetime.tsx, gallery.tsx, profile.tsx |
@@ -2126,13 +2127,13 @@ EXPO_PROJECT_ID=xxx
 ---
 
 *Documento atualizado em: 31/03/2026*
-*Versão: 5.0*
-*Total de funcionalidades: 45+*
-*Total de tabelas: 31*
-*Total de telas: 25+*
+*Versão: 6.0*
+*Total de funcionalidades: 50+*
+*Total de tabelas: 34*
+*Total de telas: 30+*
 *Total de APIs documentadas: 12+*
 *Total de core skills: 38*
 *Total de awesome skills: 1.297*
 *Total de skills disponíveis: 1.335*
 *Total de seções técnicas: 36*
-*Total de libs utilitárias: 8*
+*Total de libs utilitárias: 9*
