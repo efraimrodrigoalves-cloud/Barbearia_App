@@ -1531,9 +1531,9 @@ npx expo-doctor
 ### Fase 4 - Crescimento (IMPLEMENTADO ✅)
 - [x] Modo offline com cache (useOffline hook)
 - [x] Relatórios avançados (gráficos de faturamento, clientes, barbeiros)
-- [x] Sistema de cupons de desconto (criar/aplicar no agendamento)
 - [x] Indicação com recompensa (registrar, acompanhar, resgatar)
 - [x] Chat interno barbeiro-cliente (schema pronto)
+- [x] Pontos de fidelidade com níveis e recompensas
 
 ### Fase 5 - Escala (FUTURO 🔮)
 - [ ] Multi-tenant (SaaS)
@@ -2071,7 +2071,7 @@ EXPO_PROJECT_ID=xxx
 
 | Data | Versão | Mudança | Arquivo |
 |------|--------|---------|---------|
-| 31/03/2026 | 6.0 | Fase 4 completa: Offline, Relatórios, Cupons, Indicações, Chat | useOffline.ts, reports.tsx, coupon.tsx, referrals.tsx, supabase_coupons.sql, supabase_referrals.sql, supabase_chat.sql |
+| 31/03/2026 | 6.0 | Fase 4 completa: Offline, Relatórios, Indicações, Chat, Fidelidade | useOffline.ts, reports.tsx, referrals.tsx, supabase_referrals.sql, supabase_chat.sql, supabase_loyalty.sql |
 | 31/03/2026 | 5.0 | Implementados: errorHandler, cache, AuthContext. Documentação de pagamento completa | errorHandler.ts, cache.ts, AuthContext.tsx |
 | 31/03/2026 | 4.3 | Catálogo de 1.297 awesome skills integrado ao projeto | awesome-skills/, GEMINI.md, ARCHITECTURE.md |
 | 31/03/2026 | 4.2 | Corrigidos 3 bugs: horários não atualizam, galeria offline, logout com cache | datetime.tsx, gallery.tsx, profile.tsx |

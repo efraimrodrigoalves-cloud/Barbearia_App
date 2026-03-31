@@ -2886,15 +2886,6 @@ export default function AdminScreen() {
               <Text className="text-[#d4af37] font-bold text-xs mt-1">Relatórios</Text>
             </TouchableOpacity>
 
-            {/* Cupons - Fase 4 */}
-            <TouchableOpacity 
-              onPress={() => Alert.alert('Cupons', 'Cupons ativos: PRIMEIRAVISITA (10%), INDICA10 (R$10), VOLTEI (15%). Gerencie no Supabase.')} 
-              className="px-4 py-3 rounded-xl mr-3 items-center min-w-[80px] bg-[#1e1e1e] border border-[#d4af37]"
-            >
-              <Ionicons name="pricetag" size={20} color="#d4af37" />
-              <Text className="text-[#d4af37] font-bold text-xs mt-1">Cupons</Text>
-            </TouchableOpacity>
-
             {/* Mais - Admin apenas */}
             {hasPermission('can_view_settings') && (
               <TouchableOpacity 
