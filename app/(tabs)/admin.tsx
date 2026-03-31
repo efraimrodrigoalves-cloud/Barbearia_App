@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
+import * as LinkingExpo from 'expo-linking';
 
 const LOG_PREFIX = '[ADMIN]';
 
@@ -165,7 +166,7 @@ export default function AdminScreen() {
   // =============================================
 
   // Sub-aba do menu "Mais"
-  const [maisSubTab, setMaisSubTab] = useState<'indicacoes' | 'estoque' | 'fidelidade' | 'link' | 'permissoes'>('indicacoes');
+  const [maisSubTab, setMaisSubTab] = useState<'indicacoes' | 'estoque' | 'fidelidade' | 'link' | 'permissoes' | 'chat'>('indicacoes');
 
   // Indicações
   const [referrals, setReferrals] = useState<any[]>([]);
@@ -2848,6 +2849,26 @@ export default function AdminScreen() {
                 <Text className={`font-bold text-xs mt-1 ${activeTab === 'mais' ? 'text-black' : 'text-gray-400'}`}>Mais</Text>
               </TouchableOpacity>
             )}
+
+            {/* Relatórios - Nova feature Fase 4 */}
+            <TouchableOpacity 
+              onPress={() => LinkingExpo.default.openURL('barbershop://admin/reports')} 
+              className="px-4 py-3 rounded-xl mr-3 items-center min-w-[80px] bg-[#1e1e1e] border border-[#d4af37]"
+            >
+              <Ionicons name="analytics" size={20} color="#d4af37" />
+              <Text className="text-[#d4af37] font-bold text-xs mt-1">Relatórios</Text>
+            </TouchableOpacity>
+
+            {/* Cupons - Nova feature Fase 4 */}
+            <TouchableOpacity 
+              onPress={() => {
+                Alert.alert('Cupons', 'Gerencie cupons na seção Mais → Fidelidade ou crie novos cupons no Supabase.');
+              }} 
+              className="px-4 py-3 rounded-xl mr-3 items-center min-w-[80px] bg-[#1e1e1e] border border-[#d4af37]"
+            >
+              <Ionicons name="pricetag" size={20} color="#d4af37" />
+              <Text className="text-[#d4af37] font-bold text-xs mt-1">Cupons</Text>
+            </TouchableOpacity>
           </ScrollView>
         </View>
 
@@ -3182,22 +3203,22 @@ export default function AdminScreen() {
                                     />
                                   ))}
                                 </ScrollView>
-                              ) : (
-                                <Text className="text-gray-500 text-sm">Nenhuma foto cadastrada</Text>
-                              )}
-                            </View>
-                          </>
-                        )}
-                      </View>
-                    )}
-                  </View>
-                ))}
-              </>
-           )}
+                               ) : (
+                                 <Text className="text-gray-500 text-sm">Nenhuma foto cadastrada</Text>
+                               )}
+                       </View>
+                     </>
+                   )}
+                       </View>
+                     )}
+                   </View>
+                 ))}
+               </>
+            )}
 
-           {/* ============================================= */}
-            {/* DASHBOARD - Visão Geral do Negócio */}
             {/* ============================================= */}
+             {/* DASHBOARD - Visão Geral do Negócio */}
+             {/* ============================================= */}
             {activeTab === 'dashboard' && (
               <>
                 {/* Header com sino de notificações */}
@@ -5552,15 +5573,24 @@ export default function AdminScreen() {
                        <Text className={`font-bold text-sm ${maisSubTab === 'link' ? 'text-black' : 'text-gray-400'}`}>Link Online</Text>
                      </View>
                    </TouchableOpacity>
-                   <TouchableOpacity 
-                     onPress={() => setMaisSubTab('permissoes')}
-                     className={`px-4 py-3 rounded-xl mr-2 ${maisSubTab === 'permissoes' ? 'bg-[#d4af37]' : 'bg-[#1e1e1e] border border-gray-800'}`}
-                   >
-                     <View className="flex-row items-center">
-                       <Ionicons name="shield-checkmark" size={16} color={maisSubTab === 'permissoes' ? '#000' : '#d4af37'} style={{ marginRight: 6 }} />
-                       <Text className={`font-bold text-sm ${maisSubTab === 'permissoes' ? 'text-black' : 'text-gray-400'}`}>Permissões</Text>
-                     </View>
-                   </TouchableOpacity>
+                    <TouchableOpacity 
+                      onPress={() => setMaisSubTab('permissoes')}
+                      className={`px-4 py-3 rounded-xl mr-2 ${maisSubTab === 'permissoes' ? 'bg-[#d4af37]' : 'bg-[#1e1e1e] border border-gray-800'}`}
+                    >
+                      <View className="flex-row items-center">
+                        <Ionicons name="shield-checkmark" size={16} color={maisSubTab === 'permissoes' ? '#000' : '#d4af37'} style={{ marginRight: 6 }} />
+                        <Text className={`font-bold text-sm ${maisSubTab === 'permissoes' ? 'text-black' : 'text-gray-400'}`}>Permissões</Text>
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      onPress={() => setMaisSubTab('chat')}
+                      className={`px-4 py-3 rounded-xl mr-2 ${maisSubTab === 'chat' ? 'bg-[#d4af37]' : 'bg-[#1e1e1e] border border-gray-800'}`}
+                    >
+                      <View className="flex-row items-center">
+                        <Ionicons name="chatbubbles" size={16} color={maisSubTab === 'chat' ? '#000' : '#d4af37'} style={{ marginRight: 6 }} />
+                        <Text className={`font-bold text-sm ${maisSubTab === 'chat' ? 'text-black' : 'text-gray-400'}`}>Chat</Text>
+                      </View>
+                    </TouchableOpacity>
                  </ScrollView>
 
                  {/* INDICAÇÕES */}
