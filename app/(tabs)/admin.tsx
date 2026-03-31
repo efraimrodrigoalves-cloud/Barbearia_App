@@ -594,7 +594,44 @@ export default function AdminScreen() {
               if (newStatus === 'completed') {
                 // Atualizar dados financeiros quando concluir atendimento
                 fetchFinanceData();
-                Alert.alert('Sucesso', 'Atendimento concluído! Receita contabilizada no financeiro.');
+                
+                // Adicionar pontos de fidelidade ao cliente
+                try {
+                  const { data: appt } = await supabase
+                    .from('appointments')
+                    .select('user_id, services(price)')
+                    .eq('id', appointmentId)
+                    .single();
+
+                  if (appt?.user_id) {
+                    // Buscar configuração de pontos
+                    const { data: config } = await supabase
+                      .from('loyalty_config')
+                      .select('*')
+                      .eq('active', true)
+                      .single();
+
+                    const pointsPerAppt = config?.points_per_appointment || 10;
+                    const pointsPerReal = config?.points_per_real_spent || 1;
+                    const servicePrice = appt.services?.price || 0;
+                    const totalPoints = pointsPerAppt + Math.floor(servicePrice * Number(pointsPerReal));
+
+                    // Adicionar pontos
+                    await supabase.rpc('add_loyalty_points', {
+                      p_user_id: appt.user_id,
+                      p_points: totalPoints,
+                      p_type: 'earned',
+                      p_description: `Agendamento concluído - ${servicePrice > 0 ? `R$ ${servicePrice.toFixed(2)}` : 'Serviço'}`,
+                      p_reference_id: appointmentId
+                    });
+
+                    console.log(`${LOG_PREFIX} Pontos de fidelidade adicionados:`, { userId: appt.user_id, points: totalPoints });
+                  }
+                } catch (e: any) {
+                  console.log(`${LOG_PREFIX} Erro ao adicionar pontos:`, e.message);
+                }
+                
+                Alert.alert('Sucesso', `Atendimento concluído! +${totalPoints || 10} pontos de fidelidade.`);
               } else if (newStatus === 'cancelled') {
                 // Atualizar dados financeiros quando cancelar
                 fetchFinanceData();

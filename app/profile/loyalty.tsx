@@ -1,16 +1,15 @@
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { logger } from '../../lib/logger';
 
 /**
  * Tela de Pontos de Fidelidade
  * 
- * Descrição: Visualização de pontos, níveis e recompensas
- * Tabelas utilizadas: loyalty_points, loyalty_levels, loyalty_rewards
+ * Descrição: Visualização de pontos, níveis e recompensas com resgate
+ * Tabelas utilizadas: loyalty_points, loyalty_levels, loyalty_rewards, loyalty_transactions
  * Logs: [FIDELIDADE]
  */
 const LOG_PREFIX = '[FIDELIDADE]';
@@ -28,6 +27,7 @@ export default function LoyaltyScreen() {
   const [rewards, setRewards] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [redeeming, setRedeeming] = useState<string | null>(null);
 
   // =============================================
   // CARREGAR DADOS
@@ -38,10 +38,12 @@ export default function LoyaltyScreen() {
 
   /**
    * Carrega dados de fidelidade do cliente
+   * 
+   * Logs: [FIDELIDADE]
    */
   const loadLoyaltyData = async () => {
     setLoading(true);
-    console.log('[FIDELIDADE] Carregando dados...');
+    console.log(`${LOG_PREFIX} Carregando dados...`);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -59,7 +61,7 @@ export default function LoyaltyScreen() {
         setPoints(pointsData.points);
         setTotalEarned(pointsData.total_earned);
         setTotalRedeemed(pointsData.total_redeemed);
-        console.log('[FIDELIDADE] Pontos:', pointsData.points);
+        console.log(`${LOG_PREFIX} Pontos:`, pointsData.points);
       }
 
       // Buscar níveis
@@ -95,11 +97,78 @@ export default function LoyaltyScreen() {
 
       if (transData) setTransactions(transData);
 
-    } catch (e) {
-      console.error('[FIDELIDADE] Erro:', e);
+    } catch (e: any) {
+      console.log(`${LOG_PREFIX} Erro:`, e.message);
     }
     
     setLoading(false);
+  };
+
+  /**
+   * Resgata uma recompensa usando pontos
+   * 
+   * @param reward - Recompensa a ser resgatada
+   * 
+   * Logs: [FIDELIDADE]
+   */
+  const handleRedeemReward = async (reward: any) => {
+    if (points < reward.points_cost) {
+      Alert.alert('Pontos Insuficientes', `Você precisa de ${reward.points_cost - points} pontos a mais.`);
+      return;
+    }
+
+    Alert.alert(
+      'Resgatar Recompensa',
+      `Deseja resgatar "${reward.name}" por ${reward.points_cost} pontos?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Resgatar',
+          onPress: async () => {
+            setRedeeming(reward.id);
+            console.log(`${LOG_PREFIX} Resgatando recompensa:`, reward.name);
+
+            try {
+              const { data: { user } } = await supabase.auth.getUser();
+              if (!user) return;
+
+              // Debitar pontos
+              const { error: pointsError } = await supabase
+                .from('loyalty_points')
+                .update({
+                  points: points - reward.points_cost,
+                  total_redeemed: totalRedeemed + reward.points_cost,
+                  updated_at: new Date().toISOString()
+                })
+                .eq('user_id', user.id);
+
+              if (pointsError) throw pointsError;
+
+              // Registrar transação
+              await supabase.from('loyalty_transactions').insert({
+                user_id: user.id,
+                points: -reward.points_cost,
+                type: 'redeemed',
+                description: `Resgate: ${reward.name}`,
+                reference_id: reward.id
+              });
+
+              console.log(`${LOG_PREFIX} Recompensa resgatada com sucesso`);
+              Alert.alert('Resgatado!', `Você resgatou "${reward.name}". Apresente esta tela na barbearia.`);
+              
+              setPoints(prev => prev - reward.points_cost);
+              setTotalRedeemed(prev => prev + reward.points_cost);
+              loadLoyaltyData();
+            } catch (error: any) {
+              console.log(`${LOG_PREFIX} Erro ao resgatar:`, error.message);
+              Alert.alert('Erro', 'Não foi possível resgatar a recompensa.');
+            } finally {
+              setRedeeming(null);
+            }
+          }
+        }
+      ]
+    );
   };
 
   if (loading) {
@@ -158,7 +227,7 @@ export default function LoyaltyScreen() {
                 <View 
                   className="h-full rounded-full"
                   style={{ 
-                    width: `${(points / nextLevel.min_points) * 100}%`,
+                    width: `${Math.min((points / nextLevel.min_points) * 100, 100)}%`,
                     backgroundColor: nextLevel.color 
                   }}
                 />
@@ -188,8 +257,10 @@ export default function LoyaltyScreen() {
           {levels.map((level) => (
             <View 
               key={level.id}
-              className="bg-[#1e1e1e] p-4 rounded-xl border border-gray-800 mr-3 items-center"
-              style={{ width: 100 }}
+              className={`bg-[#1e1e1e] p-4 rounded-xl mr-3 items-center ${
+                currentLevel?.id === level.id ? 'border-2' : 'border border-gray-800'
+              }`}
+              style={{ width: 100, borderColor: currentLevel?.id === level.id ? level.color : undefined }}
             >
               <Ionicons name={level.icon} size={24} color={level.color} />
               <Text className="text-white font-bold mt-2">{level.name}</Text>
@@ -210,20 +281,56 @@ export default function LoyaltyScreen() {
           </View>
         ) : (
           rewards.map((reward) => (
-            <View key={reward.id} className="bg-[#1e1e1e] p-4 rounded-xl border border-gray-800 mb-3 flex-row items-center justify-between">
+            <TouchableOpacity
+              key={reward.id}
+              onPress={() => handleRedeemReward(reward)}
+              disabled={redeeming === reward.id || points < reward.points_cost}
+              className="bg-[#1e1e1e] p-4 rounded-xl border border-gray-800 mb-3 flex-row items-center justify-between"
+            >
               <View className="flex-1">
                 <Text className="text-white font-bold">{reward.name}</Text>
                 {reward.description && (
                   <Text className="text-gray-400 text-sm">{reward.description}</Text>
                 )}
               </View>
-              <View className={`px-3 py-1 rounded-full ${points >= reward.points_cost ? 'bg-green-900/30 border border-green-700' : 'bg-gray-800 border border-gray-700'}`}>
-                <Text className={`font-bold text-sm ${points >= reward.points_cost ? 'text-green-400' : 'text-gray-400'}`}>
-                  {reward.points_cost} pts
+              <View className="items-center">
+                {redeeming === reward.id ? (
+                  <ActivityIndicator color="#d4af37" />
+                ) : (
+                  <>
+                    <View className={`px-3 py-1 rounded-full mb-1 ${points >= reward.points_cost ? 'bg-green-900/30 border border-green-700' : 'bg-gray-800 border border-gray-700'}`}>
+                      <Text className={`font-bold text-sm ${points >= reward.points_cost ? 'text-green-400' : 'text-gray-400'}`}>
+                        {reward.points_cost} pts
+                      </Text>
+                    </View>
+                    {points >= reward.points_cost && (
+                      <Text className="text-[#d4af37] text-xs">Toque para resgatar</Text>
+                    )}
+                  </>
+                )}
+              </View>
+            </TouchableOpacity>
+          ))
+        )}
+
+        {/* Histórico */}
+        {transactions.length > 0 && (
+          <>
+            <Text className="text-white font-bold mb-3 mt-4">Histórico</Text>
+            {transactions.slice(0, 5).map((tx) => (
+              <View key={tx.id} className="flex-row justify-between items-center py-2 border-b border-gray-800">
+                <View>
+                  <Text className="text-white text-sm">{tx.description}</Text>
+                  <Text className="text-gray-500 text-xs">
+                    {new Date(tx.created_at).toLocaleDateString('pt-BR')}
+                  </Text>
+                </View>
+                <Text className={`font-bold ${tx.points > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {tx.points > 0 ? '+' : ''}{tx.points} pts
                 </Text>
               </View>
-            </View>
-          ))
+            ))}
+          </>
         )}
 
         <View className="h-8" />
