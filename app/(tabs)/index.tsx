@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useState, useCallback } from 'react';
+import * as Haptics from 'expo-haptics';
 import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 import React from 'react';
@@ -29,7 +30,7 @@ function getGreeting() {
  */
 const ServiceButton = React.memo(({ service, onPress }: { service: any; onPress: () => void }) => (
   <TouchableOpacity
-    onPress={onPress}
+    onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onPress(); }}
     activeOpacity={0.85}
     className="items-center mr-4 bg-[#1e1e1e] p-4 rounded-2xl border border-gray-800"
     style={{ width: 110 }}
@@ -53,7 +54,7 @@ ServiceButton.displayName = 'ServiceButton';
  */
 const BarberCard = React.memo(({ item, rating, onPress }: { item: any; rating: any; onPress: () => void }) => (
   <TouchableOpacity
-    onPress={onPress}
+    onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onPress(); }}
     activeOpacity={0.85}
     className="items-center mr-5 bg-[#1e1e1e] p-3 rounded-2xl border border-gray-800"
     style={{ width: 120 }}
